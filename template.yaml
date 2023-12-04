@@ -27,6 +27,9 @@ Resources:
       FunctionName: get-by-id
       Architectures:
         - arm64
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref DynamoDBTable
       Events:
         GetById:
           Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api

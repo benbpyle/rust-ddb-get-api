@@ -4,6 +4,7 @@ use std::env;
 use aws_lambda_events::apigw::{ApiGatewayProxyRequest, ApiGatewayProxyResponse};
 use aws_sdk_dynamodb::Client;
 use lambda_runtime::{run, service_fn, Error, LambdaEvent};
+use serde_json::json;
 
 use crate::data::{models::Item, repositories::fetch_item};
 
@@ -14,7 +15,14 @@ async fn function_handler(
     table_name: &str,
     event: LambdaEvent<ApiGatewayProxyRequest>,
 ) -> Result<ApiGatewayProxyResponse, Error> {
-    //tracing::info!("(Path)={:?}", event.payload.path_parameters);
+    let mut resp = ApiGatewayProxyResponse {
+        status_code: 200,
+        is_base64_encoded: Some(false),
+        body: Some(event.payload.path.unwrap().into()),
+        multi_value_headers: Default::default(),
+        headers: Default::default(),
+    };
+
     match event.payload.path_parameters.get("id") {
         Some(value) => {
             tracing::info!("(Value)={}", value);
@@ -22,19 +30,14 @@ async fn function_handler(
                 fetch_item(client, table_name, value).await;
             tracing::info!("Item retrieved");
             tracing::info!("(Item)={:?}", item);
+            let body = json!(item.unwrap()).to_string();
+            resp.body = Some(body.into());
         }
         None => {
-            tracing::error!("Key doesn't exist")
+            tracing::error!("Key doesn't exist");
+            resp.status_code = 404;
         }
     }
-
-    let resp = ApiGatewayProxyResponse {
-        status_code: 200,
-        is_base64_encoded: Some(false),
-        body: Some(event.payload.path.unwrap().into()),
-        multi_value_headers: Default::default(),
-        headers: Default::default(),
-    };
 
     Ok(resp)
 }
@@ -45,15 +48,13 @@ async fn main() -> Result<(), Error> {
         .json()
         .with_max_level(tracing::Level::INFO)
         .with_target(false)
-        //        .without_time()
         .init();
 
     let stream = env::var("TABLE_NAME").unwrap();
     let str_pointer = stream.as_str();
 
     let config = aws_config::from_env()
-        //.region(region_provider)
-        // .profile_name("personal")
+        //        .profile_name("personal")
         .load()
         .await;
     let client = Client::new(&config);

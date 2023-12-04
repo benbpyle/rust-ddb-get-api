@@ -4,6 +4,9 @@ version = "0.1.0"
 edition = "2021"
 authors = ["Benjamen Pyle <ben@binaryheap.com>"]
 
+[package.metadata.lambda.env]
+TABLE_NAME = "ddb-api-sample-DynamoDBTable-9VQJ4NVTZL9N"
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
@@ -24,3 +27,4 @@ tracing-subscriber = { version = "0.3", default-features = false, features = [
     "json",
 ] }
 thiserror = "1.0.50"
+display_json = "0.2.1"

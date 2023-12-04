@@ -1,10 +1,9 @@
-use aws_sdk_dynamodb::{error::SdkError, types::AttributeValue};
+use aws_sdk_dynamodb::types::AttributeValue;
+use display_json::DisplayAsJsonPretty;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 use std::collections::HashMap;
-use thiserror::Error;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, DisplayAsJsonPretty)]
 pub struct Item {
     pk: String,
     sk: String,
