@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 
-use aws_sdk_dynamodb::{types::AttributeValue, Client, Error};
+use super::models::{Item, ItemError};
+use aws_sdk_dynamodb::{types::AttributeValue, Client};
+use serde_dynamo::aws_sdk_dynamodb_1::from_item;
 
-use super::models::Item;
-
-pub async fn fetch_item(client: &Client, table_name: &str, id: &str) -> Result<Item, Error> {
+pub async fn fetch_item(client: &Client, table_name: &str, id: &str) -> Result<Item, ItemError> {
     let key_map: HashMap<String, AttributeValue> = [
         ("pk".to_string(), AttributeValue::S(id.to_string())),
         ("sk".to_string(), AttributeValue::S(id.to_string())),
@@ -13,13 +13,17 @@ pub async fn fetch_item(client: &Client, table_name: &str, id: &str) -> Result<I
     .cloned()
     .collect();
 
-    let result = client
+    match client
         .get_item()
         .table_name(table_name)
         .set_key(Some(key_map))
         .send()
-        .await?;
-
-    let i: Item = result.item.unwrap().into();
-    Ok(i)
+        .await
+    {
+        Ok(result) => {
+            let i: Item = from_item(result.item.unwrap())?;
+            Ok(i)
+        }
+        Err(e) => Err(e.into()),
+    }
 }

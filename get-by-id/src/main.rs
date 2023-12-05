@@ -6,7 +6,10 @@ use aws_sdk_dynamodb::Client;
 use lambda_runtime::{run, service_fn, Error, LambdaEvent};
 use serde_json::json;
 
-use crate::data::{models::Item, repositories::fetch_item};
+use crate::data::{
+    models::{Item, ItemError},
+    repositories::fetch_item,
+};
 
 mod data;
 
@@ -26,9 +29,8 @@ async fn function_handler(
     match event.payload.path_parameters.get("id") {
         Some(value) => {
             tracing::info!("(Value)={}", value);
-            let item: Result<Item, aws_sdk_dynamodb::Error> =
-                fetch_item(client, table_name, value).await;
-            tracing::info!("Item retrieved");
+            let item: Result<Item, ItemError> = fetch_item(client, table_name, value).await;
+            tracing::info!("Item retrieved now");
             tracing::info!("(Item)={:?}", item);
             let body = json!(item.unwrap()).to_string();
             resp.body = Some(body.into());
@@ -54,7 +56,7 @@ async fn main() -> Result<(), Error> {
     let str_pointer = stream.as_str();
 
     let config = aws_config::from_env()
-        //        .profile_name("personal")
+        // .profile_name("personal")
         .load()
         .await;
     let client = Client::new(&config);
