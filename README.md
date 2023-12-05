@@ -6,8 +6,6 @@ Purpose: Showcase using the AWS Rust SDK to build a GET request at a Basic `/{id
 
 ### Deploying
 
-First off, install [Node.js](https://nodejs.org/en)
-
 ### Dependencies
 
 -   [SAM](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-sam-cli.html)
